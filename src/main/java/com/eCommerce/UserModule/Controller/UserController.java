@@ -30,7 +30,7 @@ public class UserController {
         }
     }
 
-    @GetMapping("/test")
+    @GetMapping("/test2")
     public ResponseEntity<String> test(){
         return new ResponseEntity<>("Test", HttpStatus.OK);
     }

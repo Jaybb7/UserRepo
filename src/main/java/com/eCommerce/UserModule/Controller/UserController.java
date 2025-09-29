@@ -30,9 +30,21 @@ public class UserController {
         }
     }
 
-    @GetMapping("/test2")
-    public ResponseEntity<String> test(){
-        return new ResponseEntity<>("Test", HttpStatus.OK);
+    @DeleteMapping("/deleteUser")
+    public ResponseEntity<String> deleteUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        UserDTO user = userService.findByUserName(username);
+        if (user != null) {
+            try {
+                userService.deleteUser(username);
+                return new ResponseEntity<>("User deleted successfully", HttpStatus.OK);
+            } catch (Exception e) {
+                return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+            }
+        } else {
+            return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
+        }
     }
 
 }

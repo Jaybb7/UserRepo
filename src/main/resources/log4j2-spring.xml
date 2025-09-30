@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+    <Appenders>
+        <!-- Console for local debugging -->
+        <Console name="console" target="SYSTEM_OUT">
+            <PatternLayout
+                    pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n%throwable"/>
+        </Console>
+
+        <!-- Splunk HEC Appender -->
+        <SplunkHttp
+                name="splunkhttp"
+                url="http://localhost:8088"
+                token="a91ea987-0026-49a2-bcf1-bd87b26d68bb"
+                host="user-service"
+                index="user_service_api"
+                source="http-logs"
+                sourcetype="log4j"
+                disableCertificateValidation="true">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n%throwable"/>
+        </SplunkHttp>
+    </Appenders>
+
+    <Loggers>
+        <!-- Root logger -->
+        <Root level="info">
+            <AppenderRef ref="console"/>
+            <AppenderRef ref="splunkhttp"/>
+        </Root>
+
+        <!-- Dedicated error logger for UserModule -->
+        <Logger name="com.eCommerce.UserModule" level="debug" additivity="false">
+            <AppenderRef ref="console"/>
+            <AppenderRef ref="splunkhttp"/>
+        </Logger>
+
+        <!-- Enable Splunk debug if needed -->
+        <Logger name="com.splunk.logging" level="debug" additivity="false">
+            <AppenderRef ref="console"/>
+        </Logger>
+    </Loggers>
+</Configuration>

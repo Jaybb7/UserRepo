@@ -2,12 +2,11 @@ package com.eCommerce.UserModule.Controller;
 
 import com.eCommerce.UserModule.Config.JwtUtil;
 import com.eCommerce.UserModule.DTO.UserDTO;
-import com.eCommerce.UserModule.Model.SignUpRequest;
+import com.eCommerce.UserModule.Model.AuthRequest;
 import com.eCommerce.UserModule.Model.SignUpResponse;
 import com.eCommerce.UserModule.Service.UserDetailServiceImpl;
 import com.eCommerce.UserModule.Service.UserService;
 import lombok.AllArgsConstructor;
-import org.springframework.beans.BeanUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -33,9 +32,7 @@ public class PublicController {
     private final JwtUtil jwtUtil;
 
     @PostMapping("/signup")
-    public ResponseEntity<SignUpResponse> signup(@RequestBody SignUpRequest signUpRequest) {
-        UserDTO userDTO = new UserDTO();
-        BeanUtils.copyProperties(signUpRequest, userDTO);
+    public ResponseEntity<SignUpResponse> signup(@RequestBody UserDTO userDTO) {
         UserDTO user = userService.saveUser(userDTO);
         if(user != null){
             SignUpResponse signUpResponse = new SignUpResponse();
@@ -48,7 +45,7 @@ public class PublicController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Map<String, String>> login(@RequestBody SignUpRequest authRequest){
+    public ResponseEntity<Map<String, String>> login(@RequestBody AuthRequest authRequest){
         try {
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword()));
             UserDetails userDetails = userDetailService.loadUserByUsername(authRequest.getUsername());

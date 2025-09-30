@@ -9,6 +9,9 @@ import org.springframework.beans.BeansException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Service
 @AllArgsConstructor
 public class UserService {
@@ -50,4 +53,21 @@ public class UserService {
             throw new RuntimeException("User not found");
         }
     }
+
+    public List<UserDTO> findAllUsersByCountryCode(String countryCode) {
+        List<User> users = userRepository.findByPhoneStartingWith(countryCode);
+        List<UserDTO> userDTOs = new ArrayList<>();
+        if(!users.isEmpty()){
+            for(User user : users){
+                UserDTO userDTO = new UserDTO();
+                BeanUtils.copyProperties(user, userDTO);
+                userDTO.setPassword(null);
+                userDTOs.add(userDTO);
+            }
+            return userDTOs;
+        }else{
+            return userDTOs;
+        }
+    }
+
 }

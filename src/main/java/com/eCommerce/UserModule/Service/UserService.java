@@ -13,6 +13,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 @AllArgsConstructor
@@ -24,7 +25,7 @@ public class UserService {
 
     private final UserRepository userRepository;
 
-    public UserDTO saveUser(UserDTO userDTO) {
+    public CompletableFuture<UserDTO> saveUser(UserDTO userDTO) {
         logger.info("Attempting to save user with username: {}", userDTO.getUsername());
         try {
             User user = new User();
@@ -32,9 +33,9 @@ public class UserService {
             user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
             User savedUser = userRepository.save(user);
             userDTO.setId(savedUser.getId());
-            userDTO.setPassword(savedUser.getPassword());
+            userDTO.setPassword(null);
             logger.info("User saved successfully with ID: {}", savedUser.getId());
-            return userDTO;
+            return CompletableFuture.completedFuture(userDTO);
         } catch (BeansException e) {
             logger.error("Error saving user with username: {}", userDTO.getUsername(), e);
             throw new RuntimeException(e);

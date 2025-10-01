@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 @RestController
 @RequestMapping("/api")
@@ -36,19 +37,25 @@ public class PublicController {
     private final JwtUtil jwtUtil;
 
     @PostMapping("/signup")
-    public ResponseEntity<SignUpResponse> signup(@RequestBody UserDTO userDTO) {
+    public CompletableFuture<ResponseEntity<?>> signup(@RequestBody UserDTO userDTO) {
         logger.info("Signup attempt for username: {}", userDTO.getUsername());
-        UserDTO user = userService.saveUser(userDTO);
-        if(user != null){
-            logger.info("User {} signed up successfully with ID {}", user.getUsername(), user.getId());
-            SignUpResponse signUpResponse = new SignUpResponse();
-            signUpResponse.setId(user.getId());
-            signUpResponse.setUsername(user.getUsername());
-            return new ResponseEntity<>(signUpResponse, HttpStatus.CREATED);
-        }else{
-            logger.error("Signup failed for username: {}", userDTO.getUsername());
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
+        return userService.saveUser(userDTO)
+                .thenApply(savedUser -> {
+                    if (savedUser != null) {
+                        logger.info("User {} signed up successfully with ID {}", savedUser.getUsername(), savedUser.getId());
+                        SignUpResponse signUpResponse = new SignUpResponse();
+                        signUpResponse.setId(savedUser.getId());
+                        signUpResponse.setUsername(savedUser.getUsername());
+                        return new ResponseEntity<>(signUpResponse, HttpStatus.CREATED);
+                    } else {
+                        logger.error("Signup failed for username: {}", userDTO.getUsername());
+                        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+                    }
+                })
+                .exceptionally(ex -> {
+                    logger.error("Error during signup for username: {}", userDTO.getUsername(), ex);
+                    return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+                });
     }
 
     @PostMapping("/login")

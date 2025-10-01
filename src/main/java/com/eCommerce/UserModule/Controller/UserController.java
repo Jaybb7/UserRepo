@@ -12,6 +12,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @RestController
 @RequestMapping("/user")
@@ -23,19 +24,26 @@ public class UserController {
     private final UserService userService;
 
     @PutMapping("/updatePassword")
-    public ResponseEntity<UserDTO> updateUserPasswords(@RequestBody UserDTO userDTO){
+    public CompletableFuture<ResponseEntity<UserDTO>> updateUserPasswords(@RequestBody UserDTO userDTO){
         logger.info("Password update request received.");
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
         UserDTO user = userService.findByUserName(username);
         if(user != null){
             user.setPassword(userDTO.getPassword());
-            UserDTO savedUser = userService.saveUser(user);
-            logger.info("Password updated successfully for username: {}", username);
-            return new ResponseEntity<>(savedUser, HttpStatus.OK);
+            return userService.saveUser(user)
+                    .thenApply(savedUser -> {
+                        logger.info("Password updated successfully for username: {}", username);
+                        savedUser.setPassword(null); // hide password
+                        return new ResponseEntity<>(savedUser, HttpStatus.OK);
+                    })
+                    .exceptionally(ex -> {
+                        logger.error("Error updating password for username: {}", username, ex);
+                        return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+                    });
         }else{
             logger.error("Password update failed. User {} not found.", username);
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return CompletableFuture.completedFuture(new ResponseEntity<>(HttpStatus.NOT_FOUND));
         }
     }
 

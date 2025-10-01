@@ -22,7 +22,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
+
+import static org.springframework.http.ResponseEntity.status;
 
 @RestController
 @RequestMapping("/api")
@@ -37,25 +38,24 @@ public class PublicController {
     private final JwtUtil jwtUtil;
 
     @PostMapping("/signup")
-    public CompletableFuture<ResponseEntity<?>> signup(@RequestBody UserDTO userDTO) {
+    public ResponseEntity<?> signup(@RequestBody UserDTO userDTO) {
         logger.info("Signup attempt for username: {}", userDTO.getUsername());
-        return userService.saveUser(userDTO)
-                .thenApply(savedUser -> {
-                    if (savedUser != null) {
-                        logger.info("User {} signed up successfully with ID {}", savedUser.getUsername(), savedUser.getId());
-                        SignUpResponse signUpResponse = new SignUpResponse();
-                        signUpResponse.setId(savedUser.getId());
-                        signUpResponse.setUsername(savedUser.getUsername());
-                        return new ResponseEntity<>(signUpResponse, HttpStatus.CREATED);
-                    } else {
-                        logger.error("Signup failed for username: {}", userDTO.getUsername());
-                        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-                    }
-                })
-                .exceptionally(ex -> {
-                    logger.error("Error during signup for username: {}", userDTO.getUsername(), ex);
-                    return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-                });
+        try {
+            var savedUser = userService.saveUser(userDTO).join();
+            if (savedUser != null) {
+                logger.info("User {} signed up successfully with ID {}", savedUser.getUsername(), savedUser.getId());
+                SignUpResponse signUpResponse = new SignUpResponse();
+                signUpResponse.setId(savedUser.getId());
+                signUpResponse.setUsername(savedUser.getUsername());
+                return ResponseEntity.status(HttpStatus.CREATED).body(signUpResponse);
+            } else {
+                logger.error("Signup failed for username: {}", userDTO.getUsername());
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            }
+        } catch (Exception ex) {
+            logger.error("Error during signup for username: {}", userDTO.getUsername(), ex);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     @PostMapping("/login")
@@ -71,7 +71,7 @@ public class PublicController {
             return ResponseEntity.ok(response);
         } catch (AuthenticationException e) {
             logger.error("Login failed for username: {}", authRequest.getUsername(), e);
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            return status(HttpStatus.UNAUTHORIZED).build();
         }
     }
 

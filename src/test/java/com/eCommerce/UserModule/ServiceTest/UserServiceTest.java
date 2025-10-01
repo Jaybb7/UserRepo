@@ -11,6 +11,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.util.concurrent.CompletableFuture;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -41,12 +43,13 @@ public class UserServiceTest {
         when(passwordEncoder.encode("password")).thenReturn("encodedPassword");
         when(userRepository.save(any(User.class))).thenReturn(savedUser);
 
-        UserDTO result = userService.saveUser(userDTO);
+        CompletableFuture<UserDTO> result = userService.saveUser(userDTO);
 
         assertNotNull(result);
-        assertEquals(1L, result.getId());
-        assertEquals("encodedPassword", result.getPassword());
+        assertEquals(1L, result.join().getId());
+        assertNull(result.join().getPassword());
         verify(userRepository, times(1)).save(any(User.class));
+        verify(passwordEncoder, times(1)).encode("password");
     }
 
     @Test

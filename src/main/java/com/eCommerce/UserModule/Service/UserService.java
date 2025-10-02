@@ -88,4 +88,16 @@ public class UserService {
         }
     }
 
+    public boolean isUsernameExist(String username) {
+        logger.info("Searching for user with username: {}", username);
+        User user = userRepository.findByUsername(username);
+        if(user != null){
+            logger.info("User {} found with ID: {}", user.getUsername(), user.getId());
+            return true;
+        }else{
+            logger.warn("User {} not found.", username);
+            return false;
+        }
+    }
+
 }

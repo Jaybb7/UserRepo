@@ -41,16 +41,21 @@ public class PublicController {
     public ResponseEntity<?> signup(@RequestBody UserDTO userDTO) {
         logger.info("Signup attempt for username: {}", userDTO.getUsername());
         try {
-            var savedUser = userService.saveUser(userDTO).join();
-            if (savedUser != null) {
-                logger.info("User {} signed up successfully with ID {}", savedUser.getUsername(), savedUser.getId());
-                SignUpResponse signUpResponse = new SignUpResponse();
-                signUpResponse.setId(savedUser.getId());
-                signUpResponse.setUsername(savedUser.getUsername());
-                return ResponseEntity.status(HttpStatus.CREATED).body(signUpResponse);
-            } else {
-                logger.error("Signup failed for username: {}", userDTO.getUsername());
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            if(!userService.isUsernameExist(userDTO.getUsername())){
+                var savedUser = userService.saveUser(userDTO).join();
+                if (savedUser != null) {
+                    logger.info("User {} signed up successfully with ID {}", savedUser.getUsername(), savedUser.getId());
+                    SignUpResponse signUpResponse = new SignUpResponse();
+                    signUpResponse.setId(savedUser.getId());
+                    signUpResponse.setUsername(savedUser.getUsername());
+                    return ResponseEntity.status(HttpStatus.CREATED).body(signUpResponse);
+                } else {
+                    logger.error("Signup failed for username: {}", userDTO.getUsername());
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+                }
+            }else{
+                logger.error("User {} already exists", userDTO.getUsername());
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Username already exists");
             }
         } catch (Exception ex) {
             logger.error("Error during signup for username: {}", userDTO.getUsername(), ex);

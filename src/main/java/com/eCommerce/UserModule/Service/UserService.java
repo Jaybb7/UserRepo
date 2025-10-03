@@ -1,6 +1,7 @@
 package com.eCommerce.UserModule.Service;
 
 import com.eCommerce.UserModule.DTO.UserDTO;
+import com.eCommerce.UserModule.DTO.UserPhoneProjection;
 import com.eCommerce.UserModule.Entity.User;
 import com.eCommerce.UserModule.Repository.UserRepository;
 import lombok.AllArgsConstructor;
@@ -71,11 +72,11 @@ public class UserService {
 
     public List<UserDTO> findAllUsersByCountryCode(String countryCode) {
         logger.info("Fetching users by country code: {}", countryCode);
-        List<User> users = userRepository.findByPhoneStartingWith(countryCode);
+        List<UserPhoneProjection> users = userRepository.findByPhoneStartingWith(countryCode);
         List<UserDTO> userDTOs = new ArrayList<>();
         if(!users.isEmpty()){
             logger.info("Found {} users with country code: {}", users.size(), countryCode);
-            for(User user : users){
+            for(UserPhoneProjection user : users){
                 UserDTO userDTO = new UserDTO();
                 BeanUtils.copyProperties(user, userDTO);
                 userDTO.setPassword(null);

@@ -9,8 +9,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class OrderRequest {
 
-    private long userId;
-    private String itemName;
+    private Long userId;
+    private Long itemId;
     private int orderQuantity;
 
 }
+
+

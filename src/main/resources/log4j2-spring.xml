@@ -4,7 +4,7 @@
         <!-- Console for local debugging -->
         <Console name="console" target="SYSTEM_OUT">
             <PatternLayout
-                    pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n%throwable"/>
+                    pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg [correlationId=%X{correlationId}]%n%throwable"/>
         </Console>
 
         <!-- Splunk HEC Appender -->
@@ -17,7 +17,7 @@
                 source="http-logs"
                 sourcetype="log4j"
                 disableCertificateValidation="true">
-            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n%throwable"/>
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg [correlationId=%X{correlationId}]%n%throwable"/>
         </SplunkHttp>
     </Appenders>
 

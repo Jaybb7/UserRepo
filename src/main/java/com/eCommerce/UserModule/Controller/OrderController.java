@@ -9,6 +9,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/order")
 @AllArgsConstructor
@@ -19,10 +22,11 @@ public class OrderController {
     private final Logger logger = LoggerFactory.getLogger(OrderController.class);
 
     @PostMapping("/createOrder")
-    public ResponseEntity<String> createOrder(@RequestBody OrderRequest order){
-        logger.info("Create Order");
+    public ResponseEntity<Map<String, String>> createOrder(@RequestBody OrderRequest order){
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Order created successfully");
         orderService.createOrder(order);
-        return new ResponseEntity<>("Order created", HttpStatus.CREATED);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
 }

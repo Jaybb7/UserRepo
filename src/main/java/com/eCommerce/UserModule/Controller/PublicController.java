@@ -73,6 +73,7 @@ public class PublicController {
             logger.info("User {} logged in successfully. Token generated.", authRequest.getUsername());
             Map<String, String> response = new HashMap<>();
             response.put("token", token);
+            response.put("role", userDetails.getAuthorities().toString());
             return ResponseEntity.ok(response);
         } catch (AuthenticationException e) {
             logger.error("Login failed for username: {}", authRequest.getUsername(), e);

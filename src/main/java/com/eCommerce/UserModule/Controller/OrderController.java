@@ -1,5 +1,6 @@
 package com.eCommerce.UserModule.Controller;
 
+import com.eCommerce.UserModule.DTO.OrdersDTO;
 import com.eCommerce.UserModule.Model.OrderRequest;
 import com.eCommerce.UserModule.Service.OrderService;
 import lombok.AllArgsConstructor;
@@ -10,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -27,6 +29,12 @@ public class OrderController {
         response.put("message", "Order created successfully");
         orderService.createOrder(order);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PostMapping("/getOrders")
+    public ResponseEntity<List<OrdersDTO>> getOrders() {
+        List<OrdersDTO> list = orderService.getOrders();
+        return ResponseEntity.status(HttpStatus.OK).body(list);
     }
 
 }

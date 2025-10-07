@@ -21,5 +21,7 @@ public class User {
     private String phone;
     private String firstName;
     private String lastName;
+    @Column(nullable = false)
+    private String role = "USER";
 
 }

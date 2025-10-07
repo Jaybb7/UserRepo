@@ -1,5 +1,6 @@
 package com.eCommerce.UserModule.Service;
 
+import com.eCommerce.UserModule.DTO.OrdersDTO;
 import com.eCommerce.UserModule.Model.OrderRequest;
 import com.eCommerce.UserModule.Repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -12,8 +13,10 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -23,6 +26,8 @@ public class OrderService {
     private final KafkaTemplate<String, OrderRequest> kafkaTemplate;
 
     private final UserRepository userRepository;
+
+    private final WebClient webClient;
 
     private final Logger logger = LoggerFactory.getLogger(OrderService.class);
 
@@ -59,4 +64,48 @@ public class OrderService {
         }
     }
 
+    public List<OrdersDTO> getOrders() {
+        String correlationId = UUID.randomUUID().toString();
+        MDC.put("correlationId", correlationId);
+        logger.info("Entered getOrders method, correlationId={}", correlationId);
+
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth == null) {
+                logger.error("Authentication object is null, correlationId={}", correlationId);
+                throw new IllegalStateException("No authentication found in security context");
+            }
+
+            Long userId = userRepository.findByUsername(auth.getName()).getId();
+            logger.info("Authenticated user: {}, userId={}, correlationId={}", auth.getName(), userId, correlationId);
+
+            logger.debug("Triggering GET request to Order Service for userId={}, correlationId={}", userId, correlationId);
+
+            List<OrdersDTO> orders = webClient.post()
+                    .uri(uriBuilder -> uriBuilder
+                            .scheme("http")
+                            .host("localhost")
+                            .port(8082)
+                            .path("/orders/getOrders")
+                            .queryParam("userId", userId)
+                            .build())
+                    .header("correlationId", correlationId)
+                    .retrieve()
+                    .bodyToFlux(OrdersDTO.class)
+                    .collectList()
+                    .block();
+
+            logger.info("Received {} orders from Order Service, correlationId={}",
+                        orders != null ? orders.size() : 0, correlationId);
+
+            return orders;
+        } catch (Exception e) {
+            logger.error("Error occurred while fetching orders, correlationId={}", correlationId, e);
+            throw new RuntimeException("Failed to fetch orders", e);
+        } finally {
+            MDC.clear();
+            logger.debug("MDC cleared, correlationId={}", correlationId);
+            logger.info("Exiting getOrders method, correlationId={}", correlationId);
+        }
+    }
 }

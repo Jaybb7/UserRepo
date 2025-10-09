@@ -1,16 +1,17 @@
 package com.eCommerce.UserModule.Controller;
 
+import com.eCommerce.UserModule.DTO.DeliveryDriverDTO;
 import com.eCommerce.UserModule.Enums.OrderStatus;
 import com.eCommerce.UserModule.Service.AdminService;
 import lombok.RequiredArgsConstructor;
+
+import java.util.List;
 import java.util.logging.Logger;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/admin")
@@ -47,6 +48,13 @@ public class AdminController {
             return ResponseEntity.internalServerError()
                     .body("An error occurred while modifying the order: " + e.getMessage());
         }
+    }
+
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PostMapping("/findBestDrivers")
+    public ResponseEntity<List<DeliveryDriverDTO>> findBestDrivers(){
+        List<DeliveryDriverDTO> list = adminService.findBestDrivers();
+        return ResponseEntity.ok(list);
     }
 
 }

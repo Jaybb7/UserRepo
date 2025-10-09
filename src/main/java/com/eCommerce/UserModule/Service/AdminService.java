@@ -1,5 +1,6 @@
 package com.eCommerce.UserModule.Service;
 
+import com.eCommerce.UserModule.DTO.DeliveryDriverDTO;
 import com.eCommerce.UserModule.Entity.User;
 import com.eCommerce.UserModule.Enums.OrderStatus;
 import com.eCommerce.UserModule.Repository.UserRepository;
@@ -9,6 +10,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import java.util.List;
 import java.util.UUID;
 import java.util.logging.Logger;
 
@@ -58,4 +60,21 @@ public class AdminService {
             return false;
         }
     }
+
+    public List<DeliveryDriverDTO> findBestDrivers() {
+        try {
+            List<DeliveryDriverDTO> list = webClient.post()
+                    .uri("http://localhost:8082/driver/findHighestRatedDriver")
+                    .retrieve()
+                    .bodyToFlux(DeliveryDriverDTO.class)
+                    .collectList()
+                    .block();
+            logger.info("Successfully retrieved best drivers: " + (list != null ? list.size() : 0));
+            return list != null ? list : List.of();
+        } catch (Exception e) {
+            logger.severe("Error while fetching best drivers: " + e.getMessage());
+            return List.of();
+        }
+    }
+
 }
